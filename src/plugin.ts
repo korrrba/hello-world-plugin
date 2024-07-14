@@ -1,15 +1,14 @@
 import { Octokit } from "@octokit/rest";
-import { createClient } from "@supabase/supabase-js";
 import { createAdapters } from "./adapters";
 import { Env, PluginInputs } from "./types";
 import { Context } from "./types";
+import { userHelloWorld } from "./handlers/user-hello-world";
 
 /**
  * How a worker executes the plugin.
  */
 export async function plugin(inputs: PluginInputs, env: Env) {
   const octokit = new Octokit({ auth: inputs.authToken });
-  const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
 
   const context: Context = {
     eventName: inputs.eventName,
@@ -37,10 +36,8 @@ export async function plugin(inputs: PluginInputs, env: Env) {
     adapters: {} as ReturnType<typeof createAdapters>,
   };
 
-  context.adapters = createAdapters(supabase, context);
-
   if (context.eventName === "issue_comment.created") {
-    // do something
+    await userHelloWorld(context);
   } else {
     context.logger.error(`Unsupported event: ${context.eventName}`);
   }
